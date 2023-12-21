@@ -11,4 +11,14 @@ email: mjklaim@gmail.com
 #build-error-email: mjklaim@gmail.com
 depends: * build2 >= 0.16.0
 depends: * bpkg >= 0.16.0
-depends: libhello
+depends:
+\
+libhello
+{
+  require
+  {
+    config.libhello.debug = true
+  }
+}
+\
+
