@@ -3,7 +3,7 @@
 #include <iosfwd>
 #include <string>
 
-#include <libhello/config.hxx>
+// #include <libhello/config.hxx>
 #include <libhello/export.hxx>
 
 namespace hello

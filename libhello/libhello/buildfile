@@ -2,10 +2,10 @@ intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
 #import xxxx_libs += libhello%lib{hello}
 
-lib{hello}: {hxx ixx txx cxx}{** -version} hxx{version} hxx{config} $impl_libs $intf_libs
+lib{hello}: {hxx ixx txx cxx}{** -version} hxx{version} $impl_libs $intf_libs # hxx{config}
 
 hxx{version}: in{version} $src_root/manifest
-hxx{config}: in{config}
+# hxx{config}: in{config}
 
 # Build options.
 #
@@ -30,8 +30,10 @@ libs{hello}: cxx.export.poptions += -DLIBHELLO_SHARED
 if ($config.libhello.debug)
 {
   info "DEBUG ENABLED"
-  # cxx.poptions += -DLIBHELLO_DEBUG_MODE
+  cxx.poptions += -DLIBHELLO_DEBUG_MODE
   # lib{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
+  libs{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
+  liba{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
 }
 
 # For pre-releases use the complete version to make sure they cannot
