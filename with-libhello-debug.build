@@ -1,0 +1,6 @@
+# config format verison, not version of the project
+config.version = 1
+
+
+config.libhello.debug = true
+

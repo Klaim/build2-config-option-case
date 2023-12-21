@@ -18,7 +18,7 @@ namespace hello
   constexpr bool is_debug_mode()
   {
     return
-#ifdef LIBHELLO_DEBUG_MODE
+#if LIBHELLO_DEBUG_MODE
       true
 #else
       false

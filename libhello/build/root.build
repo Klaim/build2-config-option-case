@@ -16,5 +16,3 @@ cxx{*}: extension = cxx
 test.target = $cxx.target
 
 config [bool] config.libhello.debug ?= false
-
-using in

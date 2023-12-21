@@ -2,10 +2,9 @@ intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
 #import xxxx_libs += libhello%lib{hello}
 
-lib{hello}: {hxx ixx txx cxx}{** -version} hxx{version} $impl_libs $intf_libs # hxx{config}
+lib{hello}: {hxx ixx txx cxx}{** -version} hxx{version} $impl_libs $intf_libs
 
 hxx{version}: in{version} $src_root/manifest
-# hxx{config}: in{config}
 
 # Build options.
 #
@@ -27,13 +26,18 @@ liba{hello}: cxx.export.poptions += -DLIBHELLO_STATIC
 libs{hello}: cxx.export.poptions += -DLIBHELLO_SHARED
 
 
-if ($config.libhello.debug)
+if $config.libhello.debug
 {
-  info "DEBUG ENABLED"
+  info "LIBHELLO DEBUG ENABLED"
   cxx.poptions += -DLIBHELLO_DEBUG_MODE
-  # lib{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
+
+  # This does not work (maybe with binless libs only? didnt test):
+  lib{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
+
+  # This works:
   libs{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
   liba{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
+
 }
 
 # For pre-releases use the complete version to make sure they cannot
