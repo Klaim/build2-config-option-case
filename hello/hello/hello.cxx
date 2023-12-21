@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include <libhello/hello.hxx>
 
 int main (int argc, char* argv[])
@@ -11,10 +12,7 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  if(hello::is_debug_mode())
-  {
-    cout << "\nTHIS IS DEBUG MODE" << endl;
-  }
+  assert(hello::is_debug_mode() && "config.libhello.debug must be set to `true`");
 
   hello::say_hello(cout, argv[1]);
 }
