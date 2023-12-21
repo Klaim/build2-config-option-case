@@ -1,6 +1,25 @@
-# myproject
+# Case study (or issue repro.) for usage of configuration options in `build2`
 
-This is a repro-case to check what is working or not with propagation of `config.somelib.someoption=value` package-specific options to their consumer projects.
+This is project checks what is working or not with propagation of `config.somelib.someoption=value` package-specific options to their consumer projects.
+
+### Context
+
+```
+$ b --version
+build2 0.17.0-a.0.5745a2fe944d
+libbutl 0.17.0-a.0.d249dff880ed
+host x86_64-microsoft-win32-msvc14.3
+Copyright (c) 2014-2023 the build2 authors.
+This is free software released under the MIT license.
+
+
+$ bdep --version
+bdep 0.17.0-a.0.260c9251aa08
+libbpkg 0.17.0-a.0.ca2934d78b84
+libbutl 0.17.0-a.0.d249dff880ed
+Copyright (c) 2014-2023 the build2 authors.
+This is free software released under the MIT license.
+```
 
 ## How to check:
 
@@ -8,10 +27,11 @@ This is a repro-case to check what is working or not with propagation of `config
 git clone <this project's url>
 cd myproject/
 bdep init -C @myconfig cc
+bdep test # FAILS by default
 ```
 So far we just initialized the project in a  new configuration build. The project have 2 lbirarries, `libhello` which provide the hello-world implementation, and `hello` which uses `libhello`.
 
-`hello` is setup to check at runtime if we have corrctly set `libhello` in debug mode using the configuration option `config.libhello.debug=true`  (which is `false` by default).
+`hello` is setup to check at runtime if we have correctly set `libhello` in debug mode using the configuration option `config.libhello.debug=true`  (which is `false` by default).
 
 After the above commands, the debug mode is not enabled, so the runtime tests (through `b test` or `bdep test`) will fail:
 ```
@@ -64,10 +84,11 @@ There are several ways to fix the situation and make the tests pass (depending o
     bdep sync config.libhello.debug=true
     ```
 
+Note that if you have multiple configuration (debug vs release etc. , multiple build toolchains, multiple target platforms, etc.) just add `--all` or `-a` to the above commands so that these commands applies on all the build configurations (you can list them using `bdep config list`)
 
-If you have multiple configuration (debug vs release etc. , multiple build toolchains, multiple target platforms, etc.) just add `--all` or `-a` to the above commands so that these commands applies on all the build configurations (you can list them using `bdep config list`)
+4. Use a [Dependency Configuration](https://build2.org/release/0.15.0.xhtml#bpkg-dependency-configuration) for `hello` (see section below).
 
-Once you have done one of the , `bdep test` (`-a`) should pass as expected, `b test` too.
+Once you have done one of the solutions above, `bdep test` (`-a`) should pass as expected, `b test` too.
 
 NOTE: If you wanted to enable the option only to run the tests once, and not keep that option in following commands without explicitly re-running them, just pass the option to the test command:
 ```
@@ -83,9 +104,7 @@ There is [a discussion specific to making libraries propagate their configuratio
 
 ### Config headers works best
 
-As suggested in the above recommendations from the manual, I got less problems making this work correctly using the generation of a configuration header for `libhello`. So I recommend it too if you have more than one configuration option.
-However if not or you want to keep things very simple, then ...
-
+As suggested in the above recommendations from the manual, I got less problems making this work correctly using the generation of a configuration header for `libhello`. So I recommend it too if you have more than one configuration option. I didnt keep that way of doing in here because I wanted the simplest case that doesnt work easilly, to demonstrate other issues.
 
 ### Not all export variable works as expected (or assumed)
 
@@ -135,10 +154,7 @@ Then once the option is set, it will be correctly propagated through the define 
 
 ### Configuration loading
 
-I failed to make configuration loading `config.config.load=with-libhello-debug.build` work, and I'm not sure why it does nothing.
-
-
-
+I failed to make configuration loading `config.config.load=with-libhello-debug.build` work (no option set anywhere), and I'm not sure why it does nothing. Maybe it works iwth `--option-file` but I didnt try yet.
 
 ## Clarification: Test sequences
 
@@ -169,5 +185,59 @@ bdep init -C @myconfig cc -- config.libhello.debug=true  # Set the right config 
 bdep test                               # PASS: config.libhello.debug == true
 
 ```
+
+
+## Dependency Configuration
+
+Since `build2 v0.15.0` we can [make a package specify a required configuration of their dependencies](https://build2.org/release/0.15.0.xhtml#bpkg-dependency-configuration).
+This works as expected: when I set in `hello/manifest` (instead of `depends: libhello`):
+```
+depends:
+\
+libhello
+{
+  require
+  {
+    config.libhello.debug = true
+  }
+}
+\
+```
+
+This will automatically set `config.libhello.debug=true` if you dont specify it yourself:
+```
+$ bdep init -C @myconfig cc
+initializing in project E:\tools\build2\testing\config-value\myproject\
+created configuration @myconfig E:\tools\build2\testing\config-value\myproject-myconfig\ 1 target default,forwarded,auto-synchronized
+initializing package libhello
+initializing package hello
+synchronizing:
+  new libhello/0.1.0-a.0.20231221221216
+    config.libhello.debug=true (set by hello)
+  new hello/0.1.0-a.0.20231221221216
+libhello\libhello\buildfile:31:3: info: LIBHELLO DEBUG ENABLED
+
+$ bdep test
+libhello\libhello\buildfile:31:3: info: LIBHELLO DEBUG ENABLED
+  hello\hello\buildfile:2:16: info: while loading export stub for lib{hello}
+  info: while applying rule test to update (for test) ..\myproject-myconfig\dir{hello\}
+mkdir ..\myproject-myconfig\libhello\fsdir{libhello\}
+version libhello\libhello\in{version} -> ..\myproject-myconfig\libhello\libhello\hxx{version}
+mkdir ..\myproject-myconfig\hello\fsdir{hello\}
+mkdir ..\myproject-myconfig\libhello\tests\fsdir{basics\}
+c++ libhello\libhello\cxx{hello} -> ..\myproject-myconfig\libhello\libhello\objs{hello}
+c++ hello\hello\cxx{hello} -> ..\myproject-myconfig\hello\hello\obje{hello}
+c++ libhello\tests\basics\cxx{driver} -> ..\myproject-myconfig\libhello\tests\basics\obje{driver}
+ld ..\myproject-myconfig\libhello\libhello\libs{hello}
+ld ..\myproject-myconfig\libhello\tests\basics\exe{driver}
+ld ..\myproject-myconfig\hello\hello\exe{hello}
+ln ..\myproject-myconfig\hello\hello\exe{hello} -> hello\hello\
+ln ..\myproject-myconfig\libhello\tests\basics\exe{driver} -> libhello\tests\basics\
+test ..\myproject-myconfig\hello\hello\exe{hello} + hello\hello\testscript{testscript}
+test ..\myproject-myconfig\libhello\tests\basics\exe{driver}
+
+```
+
+As a demo, this is set in the `debug_by_default` branch.
 
 
