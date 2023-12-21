@@ -2,13 +2,15 @@ intf_libs = # Interface dependencies.
 impl_libs = # Implementation dependencies.
 #import xxxx_libs += libhello%lib{hello}
 
-lib{hello}: {hxx ixx txx cxx}{** -version} hxx{version} $impl_libs $intf_libs
+lib{hello}: {hxx ixx txx cxx}{** -version} hxx{version} hxx{config} $impl_libs $intf_libs
 
 hxx{version}: in{version} $src_root/manifest
+hxx{config}: in{config}
 
 # Build options.
 #
 cxx.poptions =+ "-I$out_root" "-I$src_root"
+
 
 {hbmia obja}{*}: cxx.poptions += -DLIBHELLO_STATIC_BUILD
 {hbmis objs}{*}: cxx.poptions += -DLIBHELLO_SHARED_BUILD
@@ -23,6 +25,14 @@ lib{hello}:
 
 liba{hello}: cxx.export.poptions += -DLIBHELLO_STATIC
 libs{hello}: cxx.export.poptions += -DLIBHELLO_SHARED
+
+
+if ($config.libhello.debug)
+{
+  info "DEBUG ENABLED"
+  # cxx.poptions += -DLIBHELLO_DEBUG_MODE
+  # lib{hello}: cxx.export.poptions += -DLIBHELLO_DEBUG_MODE
+}
 
 # For pre-releases use the complete version to make sure they cannot
 # be used in place of another pre-release or the final version. See

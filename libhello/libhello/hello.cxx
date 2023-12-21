@@ -14,4 +14,5 @@ namespace hello
 
     o << "Hello, " << n << '!' << endl;
   }
+
 }

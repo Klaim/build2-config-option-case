@@ -1,4 +1,5 @@
 #include <iostream>
+#include <libhello/hello.hxx>
 
 int main (int argc, char* argv[])
 {
@@ -10,5 +11,10 @@ int main (int argc, char* argv[])
     return 1;
   }
 
-  cout << "Hello, " << argv[1] << '!' << endl;
+  if(hello::is_debug_mode())
+  {
+    cout << "\nTHIS IS DEBUG MODE" << endl;
+  }
+
+  hello::say_hello(cout, argv[1]);
 }

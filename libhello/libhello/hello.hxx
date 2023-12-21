@@ -3,6 +3,7 @@
 #include <iosfwd>
 #include <string>
 
+#include <libhello/config.hxx>
 #include <libhello/export.hxx>
 
 namespace hello
@@ -12,4 +13,17 @@ namespace hello
   //
   LIBHELLO_SYMEXPORT void
   say_hello (std::ostream&, const std::string& name);
+
+
+  constexpr bool is_debug_mode()
+  {
+    return
+#ifdef LIBHELLO_DEBUG_MODE
+      true
+#else
+      false
+#endif
+    ;
+  }
+
 }

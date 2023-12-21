@@ -1,0 +1,5 @@
+#pragma once
+
+#define LIBHELLO_DEBUG_MODE $config.libhello.debug$
+
+
